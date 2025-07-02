@@ -1,0 +1,68 @@
+_schema-version: 3.3.0
+ID: EMPLOYEE-MANAGEMENT-BTP-JAVA
+version: 1.0.0-SNAPSHOT
+description: "A simple CAP project."
+parameters:
+  enable-parallel-deployments: true
+modules:
+  - name: EMPLOYEE-MANAGEMENT-BTP-JAVA-srv
+    type: java
+    path: srv
+    parameters:
+      instances: 1
+      buildpack: sap_java_buildpack_jakarta
+    properties:
+      SPRING_PROFILES_ACTIVE: cloud,sandbox
+      JBP_CONFIG_COMPONENTS: "jres: ['com.sap.xs.java.buildpack.jre.SAPMachineJRE']"
+      JBP_CONFIG_SAP_MACHINE_JRE: '{ version: 21.+ }'
+    build-parameters:
+      builder: custom
+      commands:
+        - mvn clean package -DskipTests=true --batch-mode
+      build-result: target/*-exec.jar
+    provides:
+      - name: srv-api # required by consumers of CAP services (e.g. approuter)
+        properties:
+          srv-url: ${default-url}
+    requires:
+      - name: EMPLOYEE-MANAGEMENT-BTP-JAVA-auth
+  - name: EMPLOYEE-MANAGEMENT-BTP-JAVA-srv-deployer
+    type: java
+    path: gen/srv
+    requires:
+      - name: EMPLOYEE-MANAGEMENT-BTP-JAVA-db
+      - name: EMPLOYEE-MANAGEMENT-BTP-JAVA-auth
+      - name: EMPLOYEE-MANAGEMENT-BTP-JAVA-destination
+
+  - name: EMPLOYEE-MANAGEMENT-BTP-JAVA-db-deployer
+    type: hdb
+    path: gen/db
+    parameters:
+      buildpack: nodejs_buildpack
+    build-parameters:
+      builder: custom
+      commands:
+        - npm run build
+    requires:
+      - name: EMPLOYEE-MANAGEMENT-BTP-JAVA-db
+
+resources:
+  - name: EMPLOYEE-MANAGEMENT-BTP-JAVA-auth
+    type: org.cloudfoundry.managed-service
+    parameters:
+      service: xsuaa
+      service-plan: application
+      path: ./xs-security.json
+      config:
+        xsappname: EMPLOYEE-MANAGEMENT-BTP-JAVA-${org}-${space}
+        tenant-mode: dedicated
+  - name: EMPLOYEE-MANAGEMENT-BTP-JAVA-db
+    type: com.sap.xs.hdi-container
+    parameters:
+      service: hana
+      service-plan: hdi-shared
+  - name: EMPLOYEE-MANAGEMENT-BTP-JAVA-destination
+    type: org.cloudfoundry.managed-service
+    parameters:
+      service: destination
+      service-plan: lite
