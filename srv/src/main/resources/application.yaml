@@ -5,6 +5,33 @@ spring:
   sql.init.platform: h2
 cds:
   data-source.auto-config.enabled: false
+  security:
+    authentication.normalize-provider-tenant: true
+    mock.users:
+      anh:
+        password:
+        roles:
+        - Admin
+        additional:
+          firstname: Anh
+          lastname: Huynh
+          email: huynhnlananh@gmail.com
+      admin:
+        password:
+        roles:
+        - Admin
+        additional:
+          email: admin@abeam.com
+      viewer:
+        password:
+        roles:
+        - Viewer
+        additional:
+          email: viewer@abeam.com
+---         
+server.servlet.encoding:
+  charset: UTF-8
+  force: true
 ---
 management:
   endpoint:
