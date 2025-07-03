@@ -25,11 +25,6 @@ modules:
         properties:
           srv-url: ${default-url}
     requires:
-      - name: EMPLOYEE-MANAGEMENT-BTP-JAVA-auth
-  - name: EMPLOYEE-MANAGEMENT-BTP-JAVA-srv-deployer
-    type: java
-    path: gen/srv
-    requires:
       - name: EMPLOYEE-MANAGEMENT-BTP-JAVA-db
       - name: EMPLOYEE-MANAGEMENT-BTP-JAVA-auth
       - name: EMPLOYEE-MANAGEMENT-BTP-JAVA-destination
